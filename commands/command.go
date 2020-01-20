@@ -1,9 +1,10 @@
 package commands
 
 import (
-
+	"github.com/andersfylling/disgord"
 	"github.com/pazuzu156/atlas"
-
+	"os"
+	"strconv"
 )
 
 // Command is the base command object for all commands.
@@ -40,6 +41,16 @@ func Init(t *CommandItem) Command {
 	return Command{cmd}
 }
 
-// embedFooter returns a footer and timestamp for disgord embeds
-
 // getBot returns the bot object.
+func (c Command) getBot(ctx atlas.Context) *disgord.Member {
+	id, _ := strconv.Atoi(os.Getenv("BOT_ID"))
+	bot, _ := ctx.Atlas.GetMember(ctx.Context, ctx.Message.GuildID, disgord.NewSnowflake(uint64(id)))
+
+	return bot
+}
+
+// getBotUser returns the bot User object.
+func (c Command) getBotUser(ctx atlas.Context) *disgord.User {
+	return c.getBot(ctx).User
+}
+

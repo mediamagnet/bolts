@@ -49,6 +49,10 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+github.com/subosito/shorturl v1.0.0 h1:MGONdIh75VxiG/llz+mcLd2FATWAZFRa3a9ThFFJ/5A=
+github.com/subosito/shorturl v1.0.0/go.mod h1:YPY1oyCqGwaMYRyLGheJ/4FZsgxUvv/9nwp69hNzohQ=
+github.com/zpnk/go-bitly v0.0.0-20170609220507-2da97f724d1d h1:X7tuEROt+fj3yg5hHtjRytKP3Hkm5ypIYQWhpxnS0MI=
+github.com/zpnk/go-bitly v0.0.0-20170609220507-2da97f724d1d/go.mod h1:MsGXem1Wao63qswahP7pi9TsQRAqljt6rfDqlmxQiK4=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.5.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=
 go.uber.org/atomic v1.5.1 h1:rsqfU5vBkVknbhUGbAUwQKR2H4ItV8tjJ+6kJX4cxHM=

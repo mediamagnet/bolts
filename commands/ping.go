@@ -2,8 +2,10 @@ package commands
 
 import (
 	"fmt"
-
+	"os"
 	"github.com/pazuzu156/atlas"
+	"strings"
+	"time"
 )
 
 // Ping is a simple testing command.
@@ -28,11 +30,17 @@ func InitPing() Ping {
 // Register registers and runs the ping command.
 func (c Ping) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
-		if len(ctx.Args) > 0 {
-			fmt.Println(ctx.Message.Content)
-			ctx.Message.Reply(ctx.Context, ctx.Atlas, ctx.Message.Content)
-		} else {
-			ctx.Message.Reply(ctx.Context, ctx.Atlas, "Pong")
+		cmdTime := time.Now()
+		if ctx.Message.Author.ID.String() != os.Getenv("BOT_ID") {
+			if len(ctx.Args) > 0 {
+				msg := strings.TrimPrefix(ctx.Message.Content, "]ping ")
+				fmt.Println(ctx.Message.Content)
+				ctx.Message.Reply(ctx.Context, ctx.Atlas, msg)
+			} else {
+				time2 := time.Now()
+				difference := time2.Sub(cmdTime)
+				ctx.Message.Reply(ctx.Context, ctx.Atlas, "Pong "+difference.String())
+			}
 		}
 	}
 

@@ -2,10 +2,12 @@ package main
 
 import (
 	"Bolts/commands"
-	"log"
+
 	"github.com/andersfylling/disgord"
+
 	"github.com/joho/godotenv"
 	"github.com/pazuzu156/atlas"
+	"log"
 	"os"
 )
 
@@ -23,12 +25,15 @@ func main() {
 			BotToken: os.Getenv("DISCORD_TOKEN"),
 			Logger: disgord.DefaultLogger(false),
 		},
+		OwnerID: os.Getenv("BOT_OWNER"),
 	})
 
 	client.Use(atlas.DefaultLogger())
 	client.GetPrefix = func(m *disgord.Message) string {
 		return "]"
 	}
+
+
 	if err := client.Init(); err != nil {
 		panic(err)
 	}
@@ -36,4 +41,6 @@ func main() {
 
 func init() {
 	atlas.Use(commands.InitPing().Register())
+	atlas.Use(commands.InitTiny().Register())
+
 }
