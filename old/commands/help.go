@@ -15,7 +15,7 @@ func InitHelp() Help {
 		Parameters: []Parameter{
 			{
 				Name:        "string",
-				Description: "The url to be shortened",
+				Description: "The help command",
 				Required:    false,
 			},
 		},
