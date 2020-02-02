@@ -18,8 +18,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	dstoken := os.Getenv("DISCORD_TOKEN")
-	dg, err := discordgo.New("Bot" + dstoken)
+	dsToken := os.Getenv("DISCORD_TOKEN")
+	dg, err := discordgo.New("Bot " + dsToken)
 	if err != nil {
 		log.Fatal("Error creating Discord Session,", err)
 	}
