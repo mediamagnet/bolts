@@ -3,14 +3,14 @@ package commands
 import "github.com/pazuzu156/atlas"
 
 type Echo struct { Command }
-channel1 := ""
-channel2 := ""
+var channel1 = ""
+var channel2 = ""
 
 func InitEcho() Echo {
 	return Echo {Init(&CommandItem{
 		Name:        "Echo",
 		Description: "Echos one discord channel to another till stopped",
-		Usage:       "]copy channelid1 channelid2",
+		Usage:       "]echo channelid1 channelid2",
 		Parameters:  []Parameter{
 			{
 				Name:        "Channel ID 1",
@@ -29,6 +29,7 @@ func InitEcho() Echo {
 
 func (c Echo) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
-		ctx.Message.Reply(ctx.Context, ctx.Atlas, )
+		ctx.Message.Reply(ctx.Context, ctx.Atlas, "meh")
 	}
+	return c.CommandInterface
 }
