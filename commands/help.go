@@ -25,6 +25,7 @@ func InitHelp() Help {
 func (c Help) Register() *atlas.Command {
 
 	c.CommandInterface.Run = func(ctx atlas.Context) {
+		ctx.Atlas.DeleteMessage(ctx.Context, ctx.Message.ChannelID, ctx.Message.ID)
 		ctx.Atlas.CreateMessage(ctx.Context, ctx.Message.ChannelID, &disgord.CreateMessageParams{
 			Embed: &disgord.Embed{
 				Fields: []*disgord.EmbedField{
