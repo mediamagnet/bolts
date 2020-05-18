@@ -1,6 +1,9 @@
 package commands
 
-import "github.com/pazuzu156/atlas"
+import (
+	"strings"
+	"github.com/pazuzu156/atlas"
+)
 
 type Echo struct { Command }
 var channel1 = ""
@@ -29,7 +32,9 @@ func InitEcho() Echo {
 
 func (c Echo) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
-		ctx.Message.Reply(ctx.Context, ctx.Atlas, "meh")
+		if strings.Contains(ctx.Message.Content, "]echo") == true {
+			_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Now echoing the channels you wanted")
+		}
 	}
 	return c.CommandInterface
 }
