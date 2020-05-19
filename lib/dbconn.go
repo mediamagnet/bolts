@@ -3,24 +3,27 @@ package lib
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 )
+
 var err error
 
+// RoleMeListen blah
 type RoleMeListen struct {
-	GuildID 	string				`bson:"GuildID,omitempty"`
-	ChannelID	string				`bson:"ChannelID,omitempty"`
-	RoleID		string				`bson:"RoleID,omitempty"`
-	Phrase 		string				`bson:"Phrase,omitempty"`
+	GuildID   string `bson:"GuildID,omitempty"`
+	ChannelID string `bson:"ChannelID,omitempty"`
+	RoleID    string `bson:"RoleID,omitempty"`
+	Phrase    string `bson:"Phrase,omitempty"`
 }
 
-// GetClient
+// GetClient blah
 func GetClient() *mongo.Client {
-	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	clientOptions := options.Client().ApplyURI("mongodb+srv://mediamagnet:a287593A@cluster0-hjehy.gcp.mongodb.net/test?retryWrites=true&w=majority")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+
 	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +35,7 @@ func GetClient() *mongo.Client {
 	return client
 }
 
-// mongoDB connection stuff
+// MonListen mongoDB connection stuff
 func MonListen(dbase string, collect string, listens RoleMeListen) {
 	// Connecting to mongoDB
 	client := GetClient()
@@ -48,6 +51,7 @@ func MonListen(dbase string, collect string, listens RoleMeListen) {
 	fmt.Println("Inserted:", insertResult.InsertedID)
 }
 
+// MonUpdateListen blah
 func MonUpdateListen(client *mongo.Client, updatedData bson.M, filter bson.M) int64 {
 	collection := client.Database("bolts").Collection("roleme")
 	update := bson.D{{Key: "$set", Value: updatedData}}
@@ -58,23 +62,11 @@ func MonUpdateListen(client *mongo.Client, updatedData bson.M, filter bson.M) in
 	return updatedResult.ModifiedCount
 }
 
-func MonReturnAllListen(client *mongo.Client, filter bson.M) []*RoleMeListen {
-
-	var roles []*RoleMeListen
+// MonReturnOneListen blah
+func MonReturnOneListen(client *mongo.Client, filter bson.M) RoleMeListen {
+	var phrase RoleMeListen
 	collection := client.Database("bolts").Collection("listens")
-	cur, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		log.Fatal("Could not find document ", err)
-	}
-	for cur.Next(context.TODO()) {
-		var roleme RoleMeListen
-		err = cur.Decode(&roles)
-		if err != nil {
-			log.Fatal("Decode Error ", err)
-		}
-		roles = append(roles, &roleme)
-	}
-	return roles
+	documentReturned := collection.FindOne(context.TODO(), filter)
+	documentReturned.Decode(&phrase)
+	return phrase
 }
-
-
