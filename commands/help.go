@@ -5,8 +5,10 @@ import (
 	"github.com/pazuzu156/atlas"
 )
 
-type Help struct { Command }
+// Help blah
+type Help struct{ Command }
 
+// InitHelp Setup help
 func InitHelp() Help {
 	return Help{Init(&CommandItem{
 		Name:        "help",
@@ -22,6 +24,7 @@ func InitHelp() Help {
 	})}
 }
 
+// Register Help
 func (c Help) Register() *atlas.Command {
 
 	c.CommandInterface.Run = func(ctx atlas.Context) {
@@ -32,9 +35,10 @@ func (c Help) Register() *atlas.Command {
 			ctx.Atlas.CreateMessage(ctx.Context, ctx.Message.ChannelID, &disgord.CreateMessageParams{
 				Embed: &disgord.Embed{
 					Fields: []*disgord.EmbedField{
-						{Name: "Help",	Value: "Yer lookin at it."},
-						{Name: "Tiny",	Value: "Shorten a url using TinyURL"},
-						{Name: "Ping",  Value: "Echo's back what you said."},
+						{Name: "Help", Value: "Yer lookin at it."},
+						{Name: "Tiny", Value: "Shorten a url using TinyURL"},
+						{Name: "Ping", Value: "Echo's back what you said."},
+						{Name: "Role", Value: "]role new, <channelID>, <roleID>, <phrase> to add a new role to give, after that ]role <phrase> to assign role."},
 					},
 					Color: 0x00AAFF,
 					Footer: &disgord.EmbedFooter{
@@ -61,4 +65,3 @@ func (c Help) Register() *atlas.Command {
 	}
 	return c.CommandInterface
 }
-
