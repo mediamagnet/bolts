@@ -70,3 +70,22 @@ func MonReturnOneListen(client *mongo.Client, filter bson.M) RoleMeListen {
 	documentReturned.Decode(&phrase)
 	return phrase
 }
+
+// MonReturnAllListen blah
+func MonReturnAllListen(client *mongo.Client, filter bson.M) []*RoleMeListen {
+	var roles []*RoleMeListen
+	collection := client.Database("bolts").Collection("listens")
+	cur, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		log.Fatal("Error finding all the things", err)
+	}
+	for cur.Next(context.TODO()) {
+		var role RoleMeListen
+		err = cur.Decode(&role)
+		if err != nil {
+			log.Fatal("Error Decoding :( ", err)
+		}
+		roles = append(roles, &role)
+	}
+	return roles
+}

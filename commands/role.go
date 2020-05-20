@@ -2,10 +2,10 @@ package commands
 
 import (
 	"Bolts/lib"
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/andersfylling/disgord"
 	"github.com/pazuzu156/atlas"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -38,14 +38,13 @@ func InitRole() Role {
 	})}
 }
 
+// Register command
 func (c Role) Register() *atlas.Command {
-	var guildFound string
+	// var guildFound string
 	// var role disgord.Snowflake
 	// var channel disgord.Snowflake
-	var phrase string
-	var phraseSet string
-	var role []disgord.Snowflake
-	var role1 string
+	var phrase = ""
+	var roleID = ""
 
 	c.CommandInterface.Run = func(ctx atlas.Context) {
 
@@ -53,20 +52,29 @@ func (c Role) Register() *atlas.Command {
 
 		phraseLookUp := lib.MonReturnOneListen(lib.GetClient(), bson.M{"GuildID": guildString})
 
-		if ctx.Message.GuildID.String() == phraseLookUp.GuildID {
-			phraseSet = phraseLookUp.Phrase
-			guildFound = phraseLookUp.GuildID
-			role1 = phraseLookUp.RoleID
+		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
 
+		fmt.Printf("MSG: %s \n", msg)
+
+		phrases := lib.MonReturnAllListen(lib.GetClient(), bson.M{})
+		if ctx.Message.GuildID.String() == phraseLookUp.GuildID {
+			for _, v := range phrases {
+				if v.Phrase == msg {
+					phrase = v.Phrase
+					roleID = v.RoleID
+				}
+			}
 		}
 
+		fmt.Printf("Phrase: %s \n", phrase)
+
 		fmt.Println(phrase)
-		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
-		if msg == phraseSet {
-			roleStr := lib.StrToSnowflake(role1)
-			role = append(role, roleStr)
-			fmt.Printf("Guild: %s, Role: %x, Phrase: %s", guildFound, role, phraseLookUp.Phrase)
-			_ = disgord.GuildMemberUpdate{Roles: role}
+		if msg == phrase {
+			fmt.Printf("Role: %s \n", roleID)
+
+			roleStr := lib.StrToSnowflake(roleID)
+			fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
+			_ = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
 			_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Acknowledged")
 		} else {
 			if len(ctx.Args) > 0 {
@@ -80,8 +88,8 @@ func (c Role) Register() *atlas.Command {
 					fmt.Printf("%v, %v, %v, %v", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], phrase1[len(phrase1)-1])
 					listenInsert := lib.RoleMeListen{
 						GuildID:   ctx.Message.GuildID.String(),
-						ChannelID: ctx.Args[1],
-						RoleID:    ctx.Args[2],
+						ChannelID: strings.TrimSuffix(ctx.Args[1], ","),
+						RoleID:    strings.TrimSuffix(ctx.Args[2], ","),
 						Phrase:    phrase1[len(phrase1)-1],
 					}
 					lib.MonListen("bolts", "listens", listenInsert)
