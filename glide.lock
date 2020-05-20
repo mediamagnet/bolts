@@ -1,8 +1,0 @@
-hash: 6ba583fff443a0c9b881e02c77f78ac5ec477a2d6f3873d6c01c7a7d699910c9
-updated: 2020-01-18T17:10:08.4743263-06:00
-imports:
-- name: github.com/andersfylling/disgord
-  version: 5ac55308eb398c3ba6305f404dcbf78648dcc14b
-- name: github.com/joho/godotenv
-  version: 23d116af351c84513e1946b527c88823e476be13
-testImports: []
