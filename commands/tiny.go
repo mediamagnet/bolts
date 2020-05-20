@@ -2,23 +2,27 @@ package commands
 
 import (
 	"fmt"
-	"github.com/pazuzu156/atlas"
-	"github.com/subosito/shorturl"
 	"reflect"
 	"strings"
 	"unsafe"
+
+	"github.com/pazuzu156/atlas"
+	"github.com/subosito/shorturl"
 )
 
 var provider = "tinyurl"
 
-type Tiny struct { Command }
+// Tiny struct
+type Tiny struct{ Command }
 
+// BytesToString Strings from bytes
 func BytesToString(b []byte) string {
 	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
 	sh := reflect.StringHeader{bh.Data, bh.Len}
 	return *(*string)(unsafe.Pointer(&sh))
 }
 
+// InitTiny sets up tiny
 func InitTiny() Tiny {
 	return Tiny{Init(&CommandItem{
 		Name:        "tiny",
@@ -34,6 +38,7 @@ func InitTiny() Tiny {
 	})}
 }
 
+// Register registers tiny with atlas.
 func (c Tiny) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
 		if len(ctx.Args) > 0 {

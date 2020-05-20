@@ -2,19 +2,23 @@ package commands
 
 import (
 	"strings"
+
 	"github.com/pazuzu156/atlas"
 )
 
-type Echo struct { Command }
+// Echo blah
+type Echo struct{ Command }
+
 var channel1 = ""
 var channel2 = ""
 
+// InitEcho sets up for echoing
 func InitEcho() Echo {
-	return Echo {Init(&CommandItem{
+	return Echo{Init(&CommandItem{
 		Name:        "Echo",
 		Description: "Echos one discord channel to another till stopped",
 		Usage:       "]echo channelid1 channelid2",
-		Parameters:  []Parameter{
+		Parameters: []Parameter{
 			{
 				Name:        "Channel ID 1",
 				Description: "Channel ID for the source Channel",
@@ -26,10 +30,11 @@ func InitEcho() Echo {
 				Required:    true,
 			},
 		},
-		Admin:       true,
+		Admin: true,
 	})}
 }
 
+//Register Echo
 func (c Echo) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
 		if strings.Contains(ctx.Message.Content, "]echo") == true {

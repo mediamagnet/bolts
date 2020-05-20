@@ -10,8 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+// Role Struct
 type Role struct{ Command }
 
+// InitRole sets up the role command
 func InitRole() Role {
 	return Role{Init(&CommandItem{
 		Name:        "role",
