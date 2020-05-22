@@ -30,13 +30,18 @@ func New(conf Config) *Client {
 	return client
 }
 
-// NewClient creates a new DisGord Client and returns an error on configuration issues
+// NewClient creates a new Disgord Client and returns an error on configuration issues
 func NewClient(conf Config) (*Client, error) {
 	return createClient(&conf)
 }
 
-// NewClient creates a new DisGord Client and returns an error on configuration issues
+// NewClient creates a new Disgord Client and returns an error on configuration issues
 func createClient(conf *Config) (c *Client, err error) {
+	if conf.Presence != nil {
+		if _, err := gateway.StringToStatusType(conf.Presence.Status); err != nil {
+			return nil, fmt.Errorf("use a disgord value eg. disgord.StatusOnline: %w", err)
+		}
+	}
 	if conf.HTTPClient == nil {
 		// WARNING: do not set http.Client.Timeout (!)
 		conf.HTTPClient = &http.Client{}
@@ -75,7 +80,7 @@ func createClient(conf *Config) (c *Client, err error) {
 		conf.Logger = logger.Empty{}
 	}
 
-	// ignore PRESENCES_REPLACE: https://github.com/discordapp/discord-api-docs/issues/683
+	// ignore PRESENCES_REPLACE: https://github.com/discord/discord-api-docs/issues/683
 	conf.IgnoreEvents = append(conf.IgnoreEvents, "PRESENCES_REPLACE")
 
 	// caching
@@ -129,7 +134,7 @@ func createClient(conf *Config) (c *Client, err error) {
 
 type ShardConfig = gateway.ShardConfig
 
-// Config Configuration for the DisGord Client
+// Config Configuration for the Disgord Client
 type Config struct {
 	// ################################################
 	// ##
@@ -190,6 +195,8 @@ type Config struct {
 	// seem to be missing some events. But actually the lack of certain events will mean Discord aren't sending
 	// them at all due to how the identify command was defined. eg. guildS_subscriptions
 	IgnoreEvents []string
+
+	Intents gateway.Intent
 }
 
 // Client is the main disgord Client to hold your state and data. You must always initiate it using the constructor
@@ -287,7 +294,7 @@ func (c *Client) InviteURL(ctx context.Context) (u string, err error) {
 		return "", disgorderr.Wrap(err, "can't create invite url without fetching the bot id")
 	}
 
-	format := "https://discordapp.com/oauth2/authorize?scope=bot&client_id=%s&permissions=%d"
+	format := "https://discord.com/oauth2/authorize?scope=bot&client_id=%s&permissions=%d"
 	u = fmt.Sprintf(format, c.myID.String(), c.permissions)
 	return u, nil
 }
@@ -328,7 +335,7 @@ func (c *Client) GetConnectedGuilds() []Snowflake {
 	return c.connectedGuilds
 }
 
-// Logger returns the log instance of DisGord.
+// Logger returns the log instance of Disgord.
 // Note that this instance is never nil. When the conf.Logger is not assigned
 // an empty struct is used instead. Such that all calls are simply discarded at compile time
 // removing the need for nil checks.
@@ -342,6 +349,11 @@ func (c *Client) String() string {
 
 // RESTBucketGrouping shows which hashed endpoints belong to which bucket hash for the REST API.
 // Note that these bucket hashes are eventual consistent.
+func (c *Client) RESTRatelimitBuckets() (group map[string][]string) {
+	return c.req.BucketGrouping()
+}
+
+// @Deprecated: use Client.RESTRatelimitBuckets()
 func (c *Client) RESTBucketGrouping() (group map[string][]string) {
 	return c.req.BucketGrouping()
 }
@@ -387,6 +399,11 @@ func (c *Client) Connect(ctx context.Context) (err error) {
 	// only works for socketing
 	//
 	// also verifies that the correct credentials were supplied
+
+	// Avoid races during connection setup
+	c.Lock()
+	defer c.Unlock()
+
 	var me *User
 	if me, err = c.GetCurrentUser(ctx); err != nil {
 		return err
@@ -397,17 +414,29 @@ func (c *Client) Connect(ctx context.Context) (err error) {
 		return err
 	}
 
-	sharding := gateway.NewShardMngr(gateway.ShardManagerConfig{
-		ShardConfig:        c.config.ShardConfig,
-		Logger:             c.config.Logger,
-		ShutdownChan:       c.config.shutdownChan,
-		DefaultBotPresence: c.config.Presence,
-		IgnoreEvents:       c.config.IgnoreEvents,
-		EventChan:          c.eventChan,
-		DisgordInfo:        LibraryInfo(),
-		ProjectName:        c.config.ProjectName,
-		BotToken:           c.config.BotToken,
-	})
+	shardMngrConf := gateway.ShardManagerConfig{
+		ShardConfig:  c.config.ShardConfig,
+		Logger:       c.config.Logger,
+		ShutdownChan: c.config.shutdownChan,
+		IgnoreEvents: c.config.IgnoreEvents,
+		Intents:      c.config.Intents,
+		EventChan:    c.eventChan,
+		DisgordInfo:  LibraryInfo(),
+		ProjectName:  c.config.ProjectName,
+		BotToken:     c.config.BotToken,
+	}
+	if c.config.Presence != nil {
+		// assumption: error is handled when creating a new client
+		status, _ := gateway.StringToStatusType(c.config.Presence.Status)
+		shardMngrConf.DefaultBotPresence = &gateway.UpdateStatusPayload{
+			Since:  c.config.Presence.Since,
+			Game:   c.config.Presence.Game,
+			Status: status,
+			AFK:    c.config.Presence.AFK,
+		}
+	}
+
+	sharding := gateway.NewShardMngr(shardMngrConf)
 
 	c.setupConnectEnv()
 
@@ -451,6 +480,11 @@ func (c *Client) Suspend() (err error) {
 
 // DisconnectOnInterrupt wait until a termination signal is detected
 func (c *Client) DisconnectOnInterrupt() (err error) {
+	// catches panic when being called as a deferred function
+	if r := recover(); r != nil {
+		panic("unable to connect due to above error")
+	}
+
 	<-CreateTermSigListener()
 	return c.Disconnect()
 }
@@ -458,6 +492,11 @@ func (c *Client) DisconnectOnInterrupt() (err error) {
 // StayConnectedUntilInterrupted is a simple wrapper for connect, and disconnect that listens for system interrupts.
 // When a error happens you can terminate the application without worries.
 func (c *Client) StayConnectedUntilInterrupted(ctx context.Context) (err error) {
+	// catches panic when being called as a deferred function
+	if r := recover(); r != nil {
+		panic("unable to connect due to above error")
+	}
+
 	if err = c.Connect(ctx); err != nil {
 		c.log.Error(err)
 		return err
@@ -621,6 +660,8 @@ func (c *Client) On(event string, inputs ...interface{}) {
 
 // Emit sends a socket command directly to Discord.
 func (c *Client) Emit(name gatewayCmdName, payload gatewayCmdPayload) (unchandledGuildIDs []Snowflake, err error) {
+	c.RLock()
+	defer c.RUnlock()
 	if c.shardManager == nil {
 		return nil, errors.New("you must connect before you can Emit")
 	}

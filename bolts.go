@@ -4,14 +4,20 @@ import (
 	"Bolts/commands"
 
 	"github.com/andersfylling/disgord"
+	"github.com/sirupsen/logrus"
+
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/pazuzu156/atlas"
-	"log"
-	"os"
 )
 
-var pingCommand = atlas.NewCommand("ping").SetDescription("Ping/Pong command")
+var log = &logrus.Logger{
+	Out:       os.Stderr,
+	Formatter: new(logrus.TextFormatter),
+	Hooks:     make(logrus.LevelHooks),
+	Level:     logrus.DebugLevel,
+}
 
 func main() {
 	// Load .env files
@@ -23,7 +29,7 @@ func main() {
 	client := atlas.New(&atlas.Options{
 		DisgordOptions: disgord.Config{
 			BotToken: os.Getenv("DISCORD_TOKEN"),
-			Logger: disgord.DefaultLogger(false),
+			Logger:   log,
 		},
 		OwnerID: os.Getenv("BOT_OWNER"),
 	})
@@ -32,7 +38,6 @@ func main() {
 	client.GetPrefix = func(m *disgord.Message) string {
 		return "]"
 	}
-
 
 	if err := client.Init(); err != nil {
 		panic(err)
@@ -43,7 +48,6 @@ func init() {
 	atlas.Use(commands.InitPing().Register())
 	atlas.Use(commands.InitTiny().Register())
 	atlas.Use(commands.InitHelp().Register())
-	atlas.Use(commands.InitEcho().Register())
 	atlas.Use(commands.InitRole().Register())
 
 }

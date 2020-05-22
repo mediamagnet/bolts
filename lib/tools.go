@@ -4,7 +4,10 @@ import (
 	"strconv"
 
 	"github.com/andersfylling/disgord"
+	"github.com/pazuzu156/atlas"
 )
+
+var ctx atlas.Context
 
 // SnowflakeToUInt64 returns a uint64 version of a snowflake.
 func SnowflakeToUInt64(snowflake disgord.Snowflake) uint64 {

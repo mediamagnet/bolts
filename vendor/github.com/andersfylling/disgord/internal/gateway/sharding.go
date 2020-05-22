@@ -67,7 +67,7 @@ func ConfigureShardConfig(ctx context.Context, client GatewayBotGetter, conf *Sh
 }
 
 // enableGuildSubscriptions if both typing event and presence event are to be ignore, we can disable GuildSubscription
-// https://discordapp.com/developers/docs/topics/gateway#guild-subscriptions
+// https://discord.com/developers/docs/topics/gateway#guild-subscriptions
 func enableGuildSubscriptions(ignore []string) (updatedIgnores []string, ok bool) {
 	requires := []string{
 		event.TypingStart, event.PresenceUpdate,
@@ -203,6 +203,7 @@ type ShardManagerConfig struct {
 
 	// ...
 	IgnoreEvents []string
+	Intents      Intent
 
 	// sync ---
 	EventChan chan<- *Event
@@ -210,7 +211,7 @@ type ShardManagerConfig struct {
 	RESTClient GatewayBotGetter
 
 	// user specific
-	DefaultBotPresence interface{}
+	DefaultBotPresence *UpdateStatusPayload
 	ProjectName        string
 	GuildSubscriptions bool
 }
@@ -243,6 +244,7 @@ func (s *shardMngr) initShards() error {
 		Endpoint:       s.conf.URL,
 		Logger:         s.conf.Logger,
 		IgnoreEvents:   s.conf.IgnoreEvents,
+		Intents:        s.conf.Intents,
 		DiscordPktPool: s.DiscordPktPool,
 
 		// synchronization

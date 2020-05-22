@@ -5,6 +5,7 @@ import (
 	"compress/zlib"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 
 	"github.com/andersfylling/disgord/internal/gateway/opcode"
@@ -58,7 +59,7 @@ type VoiceReady struct {
 	Port  int      `json:"port"`
 	Modes []string `json:"modes"`
 
-	// From: https://discordapp.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection
+	// From: https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection
 	// `heartbeat_interval` here is an erroneous field and should be ignored.
 	// The correct heartbeat_interval value comes from the Hello payload.
 
@@ -82,7 +83,7 @@ type VoiceSessionDescription struct {
 }
 
 type voiceIdentify struct {
-	GuildID   Snowflake `json:"server_id"` // Yay for eventual consistency
+	GuildID   Snowflake `json:"server_id"` // Yay for inconsistency
 	UserID    Snowflake `json:"user_id"`
 	SessionID string    `json:"session_id"`
 	Token     string    `json:"token"`
@@ -106,6 +107,7 @@ type evtIdentity struct {
 	Shard              *[2]uint        `json:"shard,omitempty"`
 	Presence           json.RawMessage `json:"presence,omitempty"`
 	GuildSubscriptions bool            `json:"guild_subscriptions"` // most ambiguous naming ever but ok.
+	Intents            Intent          `json:"intents,omitempty"`
 }
 
 type evtResume struct {
@@ -151,6 +153,27 @@ var _ CmdPayload = (*UpdateVoiceStatePayload)(nil)
 
 func (u *UpdateVoiceStatePayload) isCmdPayload() bool { return true }
 
+type updateStatusPayloadStatus string
+
+const (
+	StatusOnline    updateStatusPayloadStatus = "online"
+	StatusDND       updateStatusPayloadStatus = "dnd"
+	StatusIdle      updateStatusPayloadStatus = "idle"
+	StatusInvisible updateStatusPayloadStatus = "invisible"
+	StatusOffline   updateStatusPayloadStatus = "offline"
+)
+
+func StringToStatusType(status string) (updateStatusPayloadStatus, error) {
+	switch updateStatusPayloadStatus(status) {
+	case StatusOnline, StatusIdle, StatusOffline, StatusDND:
+		return updateStatusPayloadStatus(status), nil
+	case "": // default value
+		return StatusOnline, nil
+	default:
+		return "", errors.New("invalid status value for Presence Status")
+	}
+}
+
 type UpdateStatusPayload struct {
 	// Since unix time (in milliseconds) of when the Client went idle, or null if the Client is not idle
 	Since *uint `json:"since"`
@@ -159,7 +182,7 @@ type UpdateStatusPayload struct {
 	Game interface{} `json:"game"`
 
 	// Status the user's new status
-	Status string `json:"status"`
+	Status updateStatusPayloadStatus `json:"status"`
 
 	// AFK whether or not the Client is afk
 	AFK bool `json:"afk"`

@@ -52,6 +52,7 @@ type SocketHandler interface {
 	//  // a handler that only runs for events within the first 10 minutes
 	//  Client.On(EvtReady, onReady, &Ctrl{Duration: 10*time.Minute})
 	On(event string, inputs ...interface{})
+	SocketHandlerRegistrators // type safe handler registration
 
 	Emitter
 }
@@ -185,7 +186,7 @@ type RESTChannel interface {
 	// DeleteChannelPermission Delete a channel permission overwrite for a user or role in a channel. Only usable
 	// for guild channels. Requires the 'MANAGE_ROLES' permission. Returns a 204 empty response on success. For more
 	// information about permissions,
-	// see permissions: https://discordapp.com/developers/docs/topics/permissions#permissions
+	// see permissions: https://discord.com/developers/docs/topics/permissions#permissions
 	DeleteChannelPermission(ctx context.Context, channelID, overwriteID Snowflake, flags ...Flag) (err error)
 
 	// AddDMParticipant Adds a recipient to a Group DM using their access token. Returns a 204 empty response
@@ -476,8 +477,8 @@ type VoiceHandler interface {
 	VoiceConnect(guildID, channelID Snowflake) (ret VoiceConnection, err error)
 }
 
-// Session Is the runtime interface for DisGord. It allows you to interact with a live session (using sockets or not).
-// Note that this interface is used after you've configured DisGord, and therefore won't allow you to configure it
+// Session Is the runtime interface for Disgord. It allows you to interact with a live session (using sockets or not).
+// Note that this interface is used after you've configured Disgord, and therefore won't allow you to configure it
 // further.
 type Session interface {
 	// Logger returns the injected logger instance. If nothing was injected, a empty wrapper is returned
@@ -500,6 +501,7 @@ type Session interface {
 	// returns the latency for each given shard id. shardID => latency
 	HeartbeatLatencies() (latencies map[uint]time.Duration, err error)
 
+	RESTRatelimitBuckets() (group map[string][]string)
 	RESTBucketGrouping() (group map[string][]string)
 
 	// Abstract REST methods for Discord structs

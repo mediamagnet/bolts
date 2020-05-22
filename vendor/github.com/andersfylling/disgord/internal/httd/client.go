@@ -17,10 +17,12 @@ import (
 
 // defaults and string format's for Discord interaction
 const (
-	BaseURL = "https://discordapp.com/api"
+	BaseURL = "https://discord.com/api"
 
-	RegexpURLSnowflakes = `\/([0-9]+)\/?`
-	RegexpEmoji         = `([a-zA-Z0-9_]+\:[0-9]+)`
+	RegexpSnowflakes     = `([0-9]+)`
+	RegexpURLSnowflakes  = `\/` + RegexpSnowflakes + `\/?`
+	RegexpEmoji          = `([.^/]+)\s?`
+	RegexpReactionPrefix = `\/channels\/([0-9]+)\/messages\/\{id\}\/reactions\/`
 
 	// Header
 	AuthorizationFormat = "Bot %s"
@@ -65,16 +67,18 @@ type RESTBucketManager interface {
 }
 
 type ErrREST struct {
-	Code       int    `json:"code"`
-	Msg        string `json:"message"`
-	Suggestion string `json:"-"`
-	HTTPCode   int    `json:"-"`
+	Code           int      `json:"code"`
+	Msg            string   `json:"message"`
+	Suggestion     string   `json:"-"`
+	HTTPCode       int      `json:"-"`
+	Bucket         []string `json:"-"`
+	HashedEndpoint string   `json:"-"`
 }
 
 var _ error = (*ErrREST)(nil)
 
 func (e *ErrREST) Error() string {
-	return e.Msg + " ---- " + e.Suggestion
+	return fmt.Sprintf("%s\n%s\n%s => %+v", e.Msg, e.Suggestion, e.HashedEndpoint, e.Bucket)
 }
 
 // Client is the httd client for handling Discord requests
@@ -272,9 +276,11 @@ func (c *Client) Do(ctx context.Context, r *Request) (resp *http.Response, body 
 		msg += strconv.Itoa(resp.StatusCode)
 
 		err = &ErrREST{
-			Msg:        msg,
-			Suggestion: string(body),
-			HTTPCode:   resp.StatusCode,
+			Msg:            msg,
+			Suggestion:     string(body),
+			HTTPCode:       resp.StatusCode,
+			Bucket:         c.buckets.BucketGrouping()[r.hashedEndpoint],
+			HashedEndpoint: r.hashedEndpoint,
 		}
 
 		// store the Discord error if it exists
