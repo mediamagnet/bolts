@@ -16,7 +16,7 @@ var log = &logrus.Logger{
 	Out:       os.Stderr,
 	Formatter: new(logrus.TextFormatter),
 	Hooks:     make(logrus.LevelHooks),
-	Level:     logrus.ErrorLevel,
+	Level:     logrus.InfoLevel,
 }
 
 func main() {
