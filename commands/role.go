@@ -4,9 +4,12 @@ import (
 	"Bolts/lib"
 	"context"
 	"fmt"
+	"github.com/andersfylling/disgord"
+	
 	"strings"
-
+	
 	"github.com/pazuzu156/atlas"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -47,17 +50,17 @@ func (c Role) Register() *atlas.Command {
 	// var channel disgord.Snowflake
 	var phrase = ""
 	var roleID = ""
-
+	
 	c.CommandInterface.Run = func(ctx atlas.Context) {
-
+		
 		guildString := ctx.Message.GuildID.String()
-
+		
 		phraseLookUp := lib.MonReturnOneListen(lib.GetClient(), bson.M{"GuildID": guildString})
-
+		
 		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
-
+		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
 		fmt.Printf("MSG: %s \n", msg)
-
+		
 		phrases := lib.MonReturnAllListen(lib.GetClient(), bson.M{})
 		if ctx.Message.GuildID.String() == phraseLookUp.GuildID {
 			for _, v := range phrases {
@@ -67,13 +70,13 @@ func (c Role) Register() *atlas.Command {
 				}
 			}
 		}
-
+		
 		fmt.Printf("Phrase: %s \n", phrase)
-
+		
 		fmt.Println(phrase)
 		if msg == phrase {
 			fmt.Printf("Role: %s \n", roleID)
-
+			
 			roleStr := lib.StrToSnowflake(roleID)
 			fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
 			_ = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
@@ -84,25 +87,35 @@ func (c Role) Register() *atlas.Command {
 				phrase1 := strings.Split(phrase, ", ")
 				fmt.Println(ctx.Args[0])
 				if ctx.Args[0] == "new" {
-					replyPhrase := fmt.Sprintf("Watching for ]role %v", phrase1[len(phrase1)-1])
-					ctx.Message.Reply(ctx.Context, ctx.Atlas, replyPhrase)
-					fmt.Println(phrase)
-					fmt.Printf("%v, %v, %v, %v", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], phrase1[len(phrase1)-1])
-					listenInsert := lib.RoleMeListen{
-						GuildID:   ctx.Message.GuildID.String(),
-						ChannelID: strings.TrimSuffix(ctx.Args[1], ","),
-						RoleID:    strings.TrimSuffix(ctx.Args[2], ","),
-						Phrase:    phrase1[len(phrase1)-1],
+					if p&disgord.PermissionManageRoles == 0 {
+						ctx.Message.Reply(ctx.Context, ctx.Atlas, "Sorry you don't have the required permissions to create a new role.")
+					} else {
+						replyPhrase := fmt.Sprintf("Watching for ]role %v", phrase1[len(phrase1)-1])
+						ctx.Message.Reply(ctx.Context, ctx.Atlas, replyPhrase)
+						fmt.Println(phrase)
+						fmt.Printf("%v, %v, %v, %v", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], phrase1[len(phrase1)-1])
+						listenInsert := lib.RoleMeListen{
+							GuildID:   ctx.Message.GuildID.String(),
+							ChannelID: strings.TrimSuffix(ctx.Args[1], ","),
+							RoleID:    strings.TrimSuffix(ctx.Args[2], ","),
+							Phrase:    phrase1[len(phrase1)-1],
+						}
+						lib.MonListen("bolts", "listens", listenInsert)
 					}
-					lib.MonListen("bolts", "listens", listenInsert)
-				} else {
-					listenLookup := lib.MonReturnOneListen(lib.GetClient(), bson.M{"GuildID": ctx.Message.GuildID})
-					fmt.Println(listenLookup)
-					fmt.Println(listenLookup.Phrase)
-
 				}
 			} else {
 				ctx.Message.Reply(ctx.Context, ctx.Atlas, "blah")
+				// member, err := disgord.Session.GetMember(ctx.Atlas.Disgord, context.Background(),ctx.Message.GuildID, ctx.Message.Author.ID)
+				// if err != nil {
+				// 	logrus.Fatal(err)
+				// }
+				
+				fmt.Printf("context: %v \n", ctx.Atlas.Disgord)
+				if err != nil {
+					logrus.Fatal(err)
+				}
+				fmt.Printf("canDo: %v \n", p)
+				fmt.Printf("Admin: %v \n", p&disgord.PermissionManageRoles)
 			}
 		}
 	}
