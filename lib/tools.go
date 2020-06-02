@@ -1,10 +1,14 @@
 package lib
 
 import (
+	"io"
+	"os"
 	"strconv"
 
 	"github.com/andersfylling/disgord"
 	"github.com/pazuzu156/atlas"
+	"github.com/sirupsen/logrus"
+	"github.com/yyewolf/dca-disgord"
 )
 
 var ctx atlas.Context
@@ -26,4 +30,22 @@ func StrToSnowflake(str string) disgord.Snowflake {
 // UInt64ToSnowflake converts a uint64 to a snowflake.
 func UInt64ToSnowflake(i uint64) disgord.Snowflake {
 	return disgord.NewSnowflake(i)
+}
+
+// EncodeSession creates DCA audio
+func EncodeSession(inFile string, outFile string) {
+	options := dca.StdEncodeOptions
+	options.RawOutput = true
+	options.Bitrate = 96
+	options.Application = "lowdelay"
+
+	encodeSession, err := dca.EncodeFile(inFile, options)
+	defer encodeSession.Cleanup()
+
+	output, err := os.Create(outFile) // Include full path including *.dca TODO: assume path based on inFile
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	io.Copy(output, encodeSession)
+
 }
