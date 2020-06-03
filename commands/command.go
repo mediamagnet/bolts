@@ -1,10 +1,12 @@
 package commands
 
 import (
-	"github.com/andersfylling/disgord"
-	"github.com/pazuzu156/atlas"
+	"Bolts/lib"
 	"os"
 	"strconv"
+
+	"github.com/andersfylling/disgord"
+	"github.com/pazuzu156/atlas"
 )
 
 // Command is the base command object for all commands.
@@ -38,6 +40,8 @@ func Init(t *CommandItem) Command {
 		cmd.SetAliases(t.Aliases...)
 	}
 
+	commands = append(commands, *t)
+
 	return Command{cmd}
 }
 
@@ -54,3 +58,8 @@ func (c Command) getBotUser(ctx atlas.Context) *disgord.User {
 	return c.getBot(ctx).User
 }
 
+func (c Command) embedFooter(ctx atlas.Context) (f *disgord.EmbedFooter, t disgord.Time) {
+	f, t = lib.AddEmbedFooter(ctx.Message)
+
+	return
+}
