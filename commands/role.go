@@ -22,7 +22,7 @@ func InitRole() Role {
 	return Role{Init(&CommandItem{
 		Name:        "role",
 		Description: "Give User a role when a phrase is said",
-		Usage:       "To create a role ']role new <listenchannel>, <role>, <phrase>' (Requires Manage Roles Permissions) To assign a role: ']role <phrase>'",
+		Usage:       "To create a role ']role new <listenchannel> <role>, <phrase>' (Requires Manage Roles Permissions) To assign a role: ']role <phrase>'",
 		Parameters: []Parameter{
 			{
 				Name:        "listenchannel",
@@ -57,6 +57,8 @@ func (c Role) Register() *atlas.Command {
 		guildString := ctx.Message.GuildID.String()
 
 		phraseLookUp := lib.MonReturnOneListen(lib.GetClient(), bson.M{"GuildID": guildString})
+		var chanIDClean string
+		var roleIDClean string
 
 		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
 		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
@@ -95,10 +97,25 @@ func (c Role) Register() *atlas.Command {
 						ctx.Message.Reply(ctx.Context, ctx.Atlas, replyPhrase)
 						fmt.Println(phrase)
 						fmt.Printf("%v, %v, %v, %v", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], phrase1[len(phrase1)-1])
+
+						// Allow for both ID and Channel name
+						if strings.HasPrefix(ctx.Args[1], "<#") {
+							chanIDClean = strings.TrimPrefix(strings.TrimSuffix(ctx.Args[1], ">"), "<#")
+						} else {
+							chanIDClean = strings.TrimSuffix(ctx.Args[1], ">")
+						}
+
+						// Allow for both ID and Role name
+						if strings.HasPrefix(ctx.Args[2], "<@&") {
+							roleIDClean = strings.TrimPrefix(strings.TrimSuffix(ctx.Args[2], ">,"), "<@&")
+						} else {
+							roleIDClean = strings.TrimSuffix(ctx.Args[2], ">,")
+						}
+
 						listenInsert := lib.RoleMeListen{
 							GuildID:   ctx.Message.GuildID.String(),
-							ChannelID: strings.TrimPrefix(strings.TrimSuffix(ctx.Args[1], ">,"), "<#"),
-							RoleID:    strings.TrimPrefix(strings.TrimSuffix(ctx.Args[2], ">,"), "<@&"),
+							ChannelID: chanIDClean,
+							RoleID:    roleIDClean,
 							Phrase:    phrase1[len(phrase1)-1],
 						}
 						lib.MonListen("bolts", "listens", listenInsert)
