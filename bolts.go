@@ -45,7 +45,7 @@ func main() {
 }
 
 func init() {
-	atlas.Use(commands.InitPing().Register())
+	// atlas.Use(commands.InitPing().Register())
 	atlas.Use(commands.InitTiny().Register())
 	atlas.Use(commands.InitHelp().Register())
 	atlas.Use(commands.InitRole().Register())

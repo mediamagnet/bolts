@@ -12,6 +12,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/subosito/shorturl v1.0.0
 	github.com/yyewolf/dca-disgord v0.0.0-20190410103004-b16040de55c3
-	go.mongodb.org/mongo-driver v1.3.3
-	golang.org/x/sys v0.0.0-20200602100848-8d3cce7afc34 // indirect
+	go.mongodb.org/mongo-driver v1.3.4
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
 )
