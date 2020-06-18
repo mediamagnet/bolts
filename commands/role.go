@@ -51,6 +51,7 @@ func (c Role) Register() *atlas.Command {
 	// var channel disgord.Snowflake
 	var phrase = ""
 	var roleID = ""
+	var ignoreID = ""
 
 	c.CommandInterface.Run = func(ctx atlas.Context) {
 
@@ -59,6 +60,7 @@ func (c Role) Register() *atlas.Command {
 		phraseLookUp := lib.MonReturnOneListen(lib.GetClient(), bson.M{"GuildID": guildString})
 		var chanIDClean string
 		var roleIDClean string
+		var ignoreIDClean string
 
 		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
 		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
@@ -70,6 +72,7 @@ func (c Role) Register() *atlas.Command {
 				if v.Phrase == msg {
 					phrase = v.Phrase
 					roleID = v.RoleID
+					ignoreID = v.IgnoreID
 				}
 			}
 		}
@@ -82,6 +85,8 @@ func (c Role) Register() *atlas.Command {
 
 			roleStr := lib.StrToSnowflake(roleID)
 			fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
+			//if disgord.Client.Get == true {
+			// }
 			_ = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
 			_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Acknowledged")
 		} else {
@@ -112,10 +117,18 @@ func (c Role) Register() *atlas.Command {
 							roleIDClean = strings.TrimSuffix(ctx.Args[2], ">,")
 						}
 
+						// Allow Ignored role id and name
+						if strings.HasPrefix(ctx.Args[2], "<@&") {
+							ignoreIDClean = strings.TrimPrefix(strings.TrimSuffix(ctx.Args[3], ">,"), "<@&")
+						} else {
+							ignoreIDClean = strings.TrimSuffix(ctx.Args[3], ">,")
+						}
+
 						listenInsert := lib.RoleMeListen{
 							GuildID:   ctx.Message.GuildID.String(),
 							ChannelID: chanIDClean,
 							RoleID:    roleIDClean,
+							IgnoreID:  ignoreIDClean,
 							Phrase:    phrase1[len(phrase1)-1],
 						}
 						lib.MonListen("bolts", "listens", listenInsert)
@@ -127,6 +140,8 @@ func (c Role) Register() *atlas.Command {
 				// if err != nil {
 				// 	logrus.Fatal(err)
 				// }
+
+				fmt.Println(disgord.Session.GetMember(ctx.Atlas.Disgord, context.TODO(), ctx.Message.GuildID, ctx.Message.Author.ID))
 
 				fmt.Printf("context: %v \n", ctx.Atlas.Disgord)
 				if err != nil {
