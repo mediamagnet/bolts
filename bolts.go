@@ -35,8 +35,9 @@ func main() {
 	})
 
 	client.Use(atlas.DefaultLogger())
+	client.UpdateStatusString("use ]h for help.")
 	client.GetPrefix = func(m *disgord.Message) string {
-		return "]"
+		return "["
 	}
 
 	if err := client.Init(); err != nil {
@@ -45,6 +46,7 @@ func main() {
 }
 
 func init() {
+
 	// atlas.Use(commands.InitPing().Register())
 	atlas.Use(commands.InitTiny().Register())
 	atlas.Use(commands.InitHelp().Register())

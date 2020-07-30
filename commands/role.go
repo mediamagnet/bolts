@@ -84,7 +84,9 @@ func (c Role) Register() *atlas.Command {
 			fmt.Printf("Role: %s \n", roleID)
 
 			roleStr := lib.StrToSnowflake(roleID)
+			ignoreStr := lib.StrToSnowflake(ignoreID)
 			fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
+			fmt.Printf("Ignored Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(ignoreStr))
 			//if disgord.Client.Get == true {
 			// }
 			_ = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
