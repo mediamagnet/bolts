@@ -137,7 +137,7 @@ func (c Role) Register() *atlas.Command {
 					}
 				}
 			} else {
-				ctx.Message.Reply(ctx.Context, ctx.Atlas, "blah")
+				ctx.Message.Reply(ctx.Context, ctx.Atlas, "Sorry, it seems you're missing a role phrase or the rest of the command to add a role. If you need help do ]h role.")
 				// member, err := disgord.Session.GetMember(ctx.Atlas.Disgord, context.Background(),ctx.Message.GuildID, ctx.Message.Author.ID)
 				// if err != nil {
 				// 	logrus.Fatal(err)
