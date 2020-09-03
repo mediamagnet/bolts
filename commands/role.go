@@ -4,6 +4,7 @@ import (
 	"Bolts/lib"
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/andersfylling/disgord"
 
@@ -35,6 +36,11 @@ func InitRole() Role {
 				Required:    true,
 			},
 			{
+				Name:        "Ignore",
+				Description: "Role to Ignore",
+				Required:    true,
+			},
+			{
 				Name:        "Phrase",
 				Description: "Phrase to listen for.",
 				Required:    true,
@@ -49,9 +55,13 @@ func (c Role) Register() *atlas.Command {
 	// var guildFound string
 	// var role disgord.Snowflake
 	// var channel disgord.Snowflake
-	var phrase = ""
+	var phrase string
 	var roleID = ""
 	var ignoreID = ""
+	reg, err := regexp.Compile("[^a-zA-Z0-9\\s]+")
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	c.CommandInterface.Run = func(ctx atlas.Context) {
 
@@ -62,7 +72,7 @@ func (c Role) Register() *atlas.Command {
 		var roleIDClean string
 		var ignoreIDClean string
 
-		msg := strings.TrimPrefix(ctx.Message.Content, "]role ")
+		msg := strings.ToLower(reg.ReplaceAllString(strings.TrimPrefix(ctx.Message.Content, ")role "), ""))
 		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
 		fmt.Printf("MSG: %s \n", msg)
 
@@ -80,18 +90,30 @@ func (c Role) Register() *atlas.Command {
 		fmt.Printf("Phrase: %s \n", phrase)
 
 		fmt.Println(phrase)
-		if msg == phrase {
-			fmt.Printf("Role: %s \n", roleID)
 
-			roleStr := lib.StrToSnowflake(roleID)
-			fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
-			//if disgord.Client.Get == true {
-			// }
-			_ = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
-			_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Acknowledged")
+		phraseClean := strings.ToLower(reg.ReplaceAllString(phrase, ""))
+
+		if msg == phraseClean {
+
+			userroles, _ := atlas.Disgord.GetMember(ctx.Atlas.Disgord, context.TODO(), ctx.Message.GuildID, ctx.Message.Author.ID)
+			rolestring := fmt.Sprintf("%v", userroles.Roles)
+			if strings.Contains(rolestring, ignoreID) {
+				ctx.Message.Reply(ctx.Context, ctx.Atlas, "Sorry I am not able to give you that role at current. Someone will be along shortly to help out.")
+			} else {
+				fmt.Printf("Role: %s \n", roleID)
+
+				roleStr := lib.StrToSnowflake(roleID)
+				fmt.Printf("Snowflake: %v, Converted: %v \n", roleStr, lib.SnowflakeToUInt64(roleStr))
+
+				err = atlas.Disgord.AddGuildMemberRole(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID, roleStr)
+				if err != nil {
+					logrus.Warn(err)
+				}
+				_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Acknowledged")
+			}
 		} else {
 			if len(ctx.Args) > 0 {
-				phrase := strings.TrimPrefix(ctx.Message.Content, "]Role")
+				phrase := strings.TrimPrefix(ctx.Message.Content, ")Role")
 				phrase1 := strings.Split(phrase, ", ")
 				fmt.Println(ctx.Args[0])
 				if ctx.Args[0] == "new" {
@@ -101,7 +123,7 @@ func (c Role) Register() *atlas.Command {
 						replyPhrase := fmt.Sprintf("Watching for ]role %v", phrase1[len(phrase1)-1])
 						ctx.Message.Reply(ctx.Context, ctx.Atlas, replyPhrase)
 						fmt.Println(phrase)
-						fmt.Printf("%v, %v, %v, %v", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], phrase1[len(phrase1)-1])
+						fmt.Printf("Guild: %v, Channel: %v, Add: %v, Ignore: %v, Phrase: %v \n", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], ctx.Args[2], phrase1[len(phrase1)-1])
 
 						// Allow for both ID and Channel name
 						if strings.HasPrefix(ctx.Args[1], "<#") {
@@ -112,9 +134,9 @@ func (c Role) Register() *atlas.Command {
 
 						// Allow for both ID and Role name
 						if strings.HasPrefix(ctx.Args[2], "<@&") {
-							roleIDClean = strings.TrimPrefix(strings.TrimSuffix(ctx.Args[2], ">,"), "<@&")
+							roleIDClean = strings.TrimPrefix(strings.TrimSuffix(ctx.Args[2], ">"), "<@&")
 						} else {
-							roleIDClean = strings.TrimSuffix(ctx.Args[2], ">,")
+							roleIDClean = strings.TrimSuffix(ctx.Args[2], ">")
 						}
 
 						// Allow Ignored role id and name
@@ -129,7 +151,7 @@ func (c Role) Register() *atlas.Command {
 							ChannelID: chanIDClean,
 							RoleID:    roleIDClean,
 							IgnoreID:  ignoreIDClean,
-							Phrase:    phrase1[len(phrase1)-1],
+							Phrase:    strings.ToLower(reg.ReplaceAllString(phrase1[len(phrase1)-1], "")),
 						}
 						lib.MonListen("bolts", "listens", listenInsert)
 					}
@@ -147,8 +169,10 @@ func (c Role) Register() *atlas.Command {
 				if err != nil {
 					logrus.Fatal(err)
 				}
+
 				fmt.Printf("canDo: %v \n", p)
 				fmt.Printf("Admin: %v \n", p&disgord.PermissionManageRoles)
+
 			}
 		}
 	}

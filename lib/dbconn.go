@@ -17,7 +17,7 @@ type RoleMeListen struct {
 	GuildID   string `bson:"GuildID,omitempty"`
 	ChannelID string `bson:"ChannelID,omitempty"`
 	RoleID    string `bson:"RoleID,omitempty"`
-	IgnoreID  string `bson:"IgnoreRole,omitempty"`
+	IgnoreID  string `bson:"IgnoreID,omitempty"`
 	Phrase    string `bson:"Phrase,omitempty"`
 }
 
