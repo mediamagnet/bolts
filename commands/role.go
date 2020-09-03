@@ -72,7 +72,7 @@ func (c Role) Register() *atlas.Command {
 		var roleIDClean string
 		var ignoreIDClean string
 
-		msg := strings.ToLower(reg.ReplaceAllString(strings.TrimPrefix(ctx.Message.Content, ")role "), ""))
+		msg := strings.ToLower(reg.ReplaceAllString(strings.TrimPrefix(ctx.Message.Content, "]role "), ""))
 		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
 		fmt.Printf("MSG: %s \n", msg)
 
@@ -113,7 +113,7 @@ func (c Role) Register() *atlas.Command {
 			}
 		} else {
 			if len(ctx.Args) > 0 {
-				phrase := strings.TrimPrefix(ctx.Message.Content, ")Role")
+				phrase := strings.TrimPrefix(ctx.Message.Content, "]role")
 				phrase1 := strings.Split(phrase, ", ")
 				fmt.Println(ctx.Args[0])
 				if ctx.Args[0] == "new" {
