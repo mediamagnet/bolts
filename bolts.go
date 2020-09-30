@@ -36,7 +36,7 @@ func main() {
 
 	client.Use(atlas.DefaultLogger())
 	client.GetPrefix = func(m *disgord.Message) string {
-		return "]"
+		return os.Getenv("PREFIX")
 	}
 
 	if err := client.Init(); err != nil {

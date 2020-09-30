@@ -4,6 +4,7 @@ import (
 	"Bolts/lib"
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/andersfylling/disgord"
@@ -23,7 +24,7 @@ func InitRole() Role {
 	return Role{Init(&CommandItem{
 		Name:        "role",
 		Description: "Give User a role when a phrase is said",
-		Usage:       "To create a role ']role new <listenchannel> <role>, <phrase>' (Requires Manage Roles Permissions) To assign a role: ']role <phrase>'",
+		Usage:       "To create a role '" + os.Getenv("PREFIX") + " new <listenchannel> <role>, <phrase>' (Requires Manage Roles Permissions) To assign a role: '" + os.Getenv("PREFIX") + " role <phrase>'",
 		Parameters: []Parameter{
 			{
 				Name:        "listenchannel",
@@ -72,7 +73,7 @@ func (c Role) Register() *atlas.Command {
 		var roleIDClean string
 		var ignoreIDClean string
 
-		msg := strings.ToLower(reg.ReplaceAllString(strings.TrimPrefix(ctx.Message.Content, "]role "), ""))
+		msg := strings.ToLower(reg.ReplaceAllString(strings.TrimPrefix(ctx.Message.Content, os.Getenv("PREFIX")+"role "), ""))
 		p, err := disgord.Session.GetMemberPermissions(ctx.Atlas.Disgord, context.Background(), ctx.Message.GuildID, ctx.Message.Author.ID)
 		fmt.Printf("MSG: %s \n", msg)
 
@@ -97,6 +98,7 @@ func (c Role) Register() *atlas.Command {
 
 			userroles, _ := atlas.Disgord.GetMember(ctx.Atlas.Disgord, context.TODO(), ctx.Message.GuildID, ctx.Message.Author.ID)
 			rolestring := fmt.Sprintf("%v", userroles.Roles)
+			_ = atlas.Disgord.DeleteMessage(ctx.Atlas.Disgord, context.TODO(), ctx.Message.ChannelID, ctx.Message.ID)
 			if strings.Contains(rolestring, ignoreID) {
 				ctx.Message.Reply(ctx.Context, ctx.Atlas, "Sorry I am not able to give you that role at current. Someone will be along shortly to help out.")
 			} else {
@@ -113,14 +115,14 @@ func (c Role) Register() *atlas.Command {
 			}
 		} else {
 			if len(ctx.Args) > 0 {
-				phrase := strings.TrimPrefix(ctx.Message.Content, "]role")
+				phrase := strings.TrimPrefix(ctx.Message.Content, os.Getenv("PREFIX")+"role")
 				phrase1 := strings.Split(phrase, ", ")
 				fmt.Println(ctx.Args[0])
 				if ctx.Args[0] == "new" {
 					if p&disgord.PermissionManageRoles == 0 {
 						ctx.Message.Reply(ctx.Context, ctx.Atlas, "Sorry you don't have the required permissions to create a new role.")
 					} else {
-						replyPhrase := fmt.Sprintf("Watching for ]role %v", phrase1[len(phrase1)-1])
+						replyPhrase := fmt.Sprintf("Watching for %v%v", os.Getenv("PREFIX"), phrase1[len(phrase1)-1])
 						ctx.Message.Reply(ctx.Context, ctx.Atlas, replyPhrase)
 						fmt.Println(phrase)
 						fmt.Printf("Guild: %v, Channel: %v, Add: %v, Ignore: %v, Phrase: %v \n", ctx.Message.GuildID, ctx.Args[0], ctx.Args[1], ctx.Args[2], phrase1[len(phrase1)-1])
