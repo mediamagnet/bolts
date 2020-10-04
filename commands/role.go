@@ -111,7 +111,8 @@ func (c Role) Register() *atlas.Command {
 				if err != nil {
 					logrus.Warn(err)
 				}
-				_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, "Acknowledged")
+				msgstr := fmt.Sprintf("Acknowledged, %v", ctx.Message.Author.Username)
+				_, _ = ctx.Message.Reply(ctx.Context, ctx.Atlas, msgstr)
 			}
 		} else {
 			if len(ctx.Args) > 0 {
