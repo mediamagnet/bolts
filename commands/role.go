@@ -95,7 +95,6 @@ func (c Role) Register() *atlas.Command {
 		phraseClean := strings.ToLower(reg.ReplaceAllString(phrase, ""))
 
 		if msg == phraseClean {
-
 			userroles, _ := atlas.Disgord.GetMember(ctx.Atlas.Disgord, context.TODO(), ctx.Message.GuildID, ctx.Message.Author.ID)
 			rolestring := fmt.Sprintf("%v", userroles.Roles)
 			_ = atlas.Disgord.DeleteMessage(ctx.Atlas.Disgord, context.TODO(), ctx.Message.ChannelID, ctx.Message.ID)
