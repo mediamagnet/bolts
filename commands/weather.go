@@ -2,6 +2,7 @@ package commands
 
 import (
 	"Bolts/lib"
+	"Bolts/tools"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -71,15 +72,15 @@ func (c Weather) Register() *atlas.Command {
 		if err != nil {
 			logrus.Warnln(err)
 		}
-		
-		_, err = ctx.Atlas.CreateMessage(ctx.Context, ctx.Message.ChannelID, &disgord.CreateMessageParams{
+
+			_, err = ctx.Atlas.CreateMessage(ctx.Context, ctx.Message.ChannelID, &disgord.CreateMessageParams{
 			Embed: &disgord.Embed{
 				Title:     fmt.Sprintf("The Weather in %v", strings.ReplaceAll(location, "_", " ")),
 				URL:       fmt.Sprintf("https://wttr.in/%v", location),
 				Timestamp: disgord.Time{},
 				Color:     0x007FFF,
 				Thumbnail: &disgord.EmbedThumbnail{
-					URL: "https://cdn.discordapp.com/avatars/668208024862588928/01d4f17e9ab4d1a4c027c4a6e1977c85.png?size=256",
+					URL: tools.WeatherIcon(weather.CurrentCondition[0].WeatherCode),
 				},
 				Video:    nil,
 				Provider: nil,
