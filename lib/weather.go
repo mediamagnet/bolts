@@ -1,5 +1,9 @@
 package lib
 
+import (
+	"time"
+)
+
 type Weather struct {
 	CurrentCondition []struct {
 		FeelsLikeC       string `json:"FeelsLikeC"`
@@ -107,4 +111,92 @@ type Weather struct {
 		TotalSnowCm string `json:"totalSnow_cm"`
 		UvIndex     string `json:"uvIndex"`
 	} `json:"weather"`
+}
+
+type Metar struct {
+	Meta                  Meta          `json:"meta"`
+	Altimeter             Altimeter     `json:"altimeter"`
+	Clouds                []interface{} `json:"clouds"`
+	FlightRules           string        `json:"flight_rules"`
+	Other                 []interface{} `json:"other"`
+	Sanitized             string        `json:"sanitized"`
+	Visibility            Visibility    `json:"visibility"`
+	WindDirection         WindDirection `json:"wind_direction"`
+	WindGust              WindGust      `json:"wind_gust"`
+	WindSpeed             WindSpeed     `json:"wind_speed"`
+	WxCodes               []interface{} `json:"wx_codes"`
+	Raw                   string        `json:"raw"`
+	Station               string        `json:"station"`
+	Time                  Time          `json:"time"`
+	Remarks               string        `json:"remarks"`
+	Dewpoint              Dewpoint      `json:"dewpoint"`
+	RemarksInfo           RemarksInfo   `json:"remarks_info"`
+	RunwayVisibility      []interface{} `json:"runway_visibility"`
+	Temperature           Temperature   `json:"temperature"`
+	WindVariableDirection []interface{} `json:"wind_variable_direction"`
+	Units                 Units         `json:"units"`
+}
+type Meta struct {
+	Timestamp       time.Time `json:"timestamp"`
+	StationsUpdated string    `json:"stations_updated"`
+}
+type Altimeter struct {
+	Repr   string  `json:"repr"`
+	Value  float64 `json:"value"`
+	Spoken string  `json:"spoken"`
+}
+type Visibility struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type WindDirection struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type WindGust struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type WindSpeed struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type Time struct {
+	Repr string    `json:"repr"`
+	Dt   time.Time `json:"dt"`
+}
+type Dewpoint struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type DewpointDecimal struct {
+	Repr   string  `json:"repr"`
+	Value  float64 `json:"value"`
+	Spoken string  `json:"spoken"`
+}
+type TemperatureDecimal struct {
+	Repr   string  `json:"repr"`
+	Value  float64 `json:"value"`
+	Spoken string  `json:"spoken"`
+}
+type RemarksInfo struct {
+	DewpointDecimal    DewpointDecimal    `json:"dewpoint_decimal"`
+	TemperatureDecimal TemperatureDecimal `json:"temperature_decimal"`
+}
+type Temperature struct {
+	Repr   string `json:"repr"`
+	Value  int    `json:"value"`
+	Spoken string `json:"spoken"`
+}
+type Units struct {
+	Altimeter   string `json:"altimeter"`
+	Altitude    string `json:"altitude"`
+	Temperature string `json:"temperature"`
+	Visibility  string `json:"visibility"`
+	WindSpeed   string `json:"wind_speed"`
 }

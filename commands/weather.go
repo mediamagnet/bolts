@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/andersfylling/disgord"
+	"github.com/joho/godotenv"
 	"github.com/pazuzu156/atlas"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -34,6 +36,15 @@ func InitWeather() Weather {
 
 func (c Weather) Register() *atlas.Command {
 	c.CommandInterface.Run = func(ctx atlas.Context) {
+
+		// Load .env files
+		err := godotenv.Load()
+		if err != nil {
+			logrus.Fatalln("Error loading .env file")
+		}
+
+		avwxKey := os.Getenv("AVWX_KEY")
+
 		location := strings.ReplaceAll(strings.TrimPrefix(ctx.Message.Content, "]weather ")," ", "_")
 		url := fmt.Sprintf("https://wttr.in/%v?format=j1", location)
 		fmt.Println(url)
@@ -66,7 +77,35 @@ func (c Weather) Register() *atlas.Command {
 			logrus.Fatal(jsonErr)
 		}
 
+
+		url2 := fmt.Sprintf("https://avwx.rest/api/metar/%v,%v", weather.NearestArea[0].Latitude, weather.NearestArea[0].Longitude)
+		req2, err := http.NewRequest(http.MethodGet, url2, nil)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		req2.Header.Set("Authorization", avwxKey)
+		res2, getErr := client.Do(req2)
+		if getErr != nil {
+			logrus.Fatal(getErr)
+		}
+		logrus.Infoln(res2.StatusCode)
+
+		if res2.Body != nil {
+			defer res2.Body.Close()
+		}
+
+		body2, readErr := ioutil.ReadAll(res2.Body)
+		if readErr != nil {
+			logrus.Fatal(readErr)
+		}
+		metar := lib.Metar{}
+		jsonErr = json.Unmarshal(body2, &metar)
+		if jsonErr != nil {
+			logrus.Error(jsonErr)
+		}
+
 		//fmt.Println(weather.CurrentCondition[0].FeelsLikeC)
+		fmt.Println(metar.Sanitized)
 
 		err = atlas.Disgord.DeleteMessage(ctx.Atlas.Disgord, context.TODO(), ctx.Message.ChannelID, ctx.Message.ID)
 		if err != nil {
@@ -125,7 +164,7 @@ func (c Weather) Register() *atlas.Command {
 					},
 				},
 				Footer: &disgord.EmbedFooter{
-					Text:         weather.Request[0].Query,
+					Text: fmt.Sprintf("%v", metar.Sanitized),
 				},
 			},
 		})
