@@ -23,6 +23,7 @@ func InitWeather() Weather {
 	return Weather{Init(&CommandItem{
 		Name:        "weather",
 		Description: "Returns the weather for a City/Postal Code or Coordinate Pair from wttr.in",
+		Aliases: []string{"wttr", "w"},
 		Usage:       "]weather <location>",
 		Parameters: []Parameter{
 			{
