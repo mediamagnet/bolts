@@ -51,5 +51,6 @@ func init() {
 	atlas.Use(commands.InitRole().Register())
 	atlas.Use(commands.InitPlayer().Register())
 	atlas.Use(commands.InitWeather().Register())
+	atlas.Use(commands.InitCatCode().Register())
 
 }
